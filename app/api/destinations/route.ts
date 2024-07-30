@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/lib/db';
+// app/api/destinations/route.ts
+import { sql } from '@vercel/postgres';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const result = await pool.query('SELECT * FROM destinations');
-    return NextResponse.json(result.rows);
+    const destinations = await sql`SELECT * FROM destinations;`;
+    return NextResponse.json({ destinations }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching destinations:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

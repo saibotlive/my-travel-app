@@ -13,6 +13,7 @@ const customJestConfig = {
     // ...
     '^@/app/(.*)$': '<rootDir>/app/$1',
     '^@/lib/(.*)$': '<rootDir>/lib/$1',
+    '^@/types/(.*)$': '<rootDir>/types/$1',
   },
 };
 

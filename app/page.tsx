@@ -3,7 +3,7 @@ import { GetServerSideProps } from 'next';
 import { store } from '../lib/store';
 import { apiSlice } from '@/lib/features/apiSlice';
 import HomeContent from './ui/home/content';
-import { Destination } from '@/lib/features/destinationSlice';
+import { Destination } from '@/types/index';
 
 interface Props {
   initialDestinations: Destination[];
@@ -11,7 +11,7 @@ interface Props {
 
 async function getData() {
   try {
-    const res = await fetch('http://localhost:5000/api/destinations');
+    const res = await fetch('http://localhost:3010/api/destinations');
 
     if (!res.ok) {
       throw new Error('Failed to fetch data');

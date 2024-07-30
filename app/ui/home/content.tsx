@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import Link from 'next/link';
 import { useGetDestinationsQuery, useUpdateFolderDestinationsMutation } from '@/lib/features/apiSlice';
-import { Destination } from '@/lib/features/destinationSlice';
+import { Destination } from '@/types/index';
 
 interface Props {
   initialDestinations: Destination[];
@@ -67,13 +67,13 @@ const HomeContent = ({ initialDestinations }: Props) => {
                     >
                       <img
                         src={destination.image}
-                        alt={`Image of ${destination.title}`}
+                        alt={`Image of ${destination.name}`}
                         className="w-full h-32 object-cover mb-2"
                       />
                       <h3 id={`destination-title-${destination.id}`} className="text-xl">
-                        {destination.title}
+                        {destination.name}
                       </h3>
-                      <Link href={`/folder/${destination.folderId}`} className="text-blue-500 hover:underline">
+                      <Link href={`/folder/${destination.folder_id}`} className="text-blue-500 hover:underline">
                         View Folder
                       </Link>
                     </div>

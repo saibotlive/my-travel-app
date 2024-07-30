@@ -1,12 +1,5 @@
+import { Destination } from '@/types/index';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-
-interface Destination {
-  id: number;
-  title: string;
-  image: string;
-  votes: number;
-  folderId: number | null;
-}
 
 interface DestinationsState {
   destinations: Destination[];

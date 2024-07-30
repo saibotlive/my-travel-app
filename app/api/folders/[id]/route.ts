@@ -1,18 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/lib/db';
+import { sql } from '@vercel/postgres';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
     const { destinationIds } = await request.json();
-    await pool.query('UPDATE destinations SET folder_id = NULL WHERE folder_id = $1', [params.id]); // Clear previous assignments
+    await sql`UPDATE destinations SET folder_id = NULL WHERE folder_id = ${params.id}`; // Clear previous assignments
     await Promise.all(
-      destinationIds.map((destinationId: number) =>
-        pool.query('UPDATE destinations SET folder_id = $1 WHERE id = $2', [params.id, destinationId])
+      destinationIds.map(
+        (destinationId: number) => sql`UPDATE destinations SET folder_id = ${params.id} WHERE id = ${destinationId}`
       )
     );
     return NextResponse.json({}, { status: 200 });
   } catch (error) {
-    console.error('Error updating folder destinations:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

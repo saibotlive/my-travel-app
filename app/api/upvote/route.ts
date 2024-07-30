@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/lib/db';
+// app/api/upvote/route.ts
+import { sql } from '@vercel/postgres';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const { id } = await request.json();
-    await pool.query('UPDATE destinations SET votes = votes + 1 WHERE id = $1', [id]);
+    await sql`UPDATE destinations SET votes = votes + 1 WHERE id = ${id}`;
     return NextResponse.json({}, { status: 200 });
   } catch (error) {
-    console.error('Error upvoting destination:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 }
