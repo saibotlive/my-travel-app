@@ -3,10 +3,17 @@ export interface Destination {
   name: string;
   image: string;
   votes: number;
-  folder_id: number | null;
 }
 
 export interface Folder {
   id: number;
   name: string;
+  description: string;
+  recent_image?: string;
+  images: string[];
+}
+
+export interface FolderWithDestinations extends Destination {
+  folderName?: string;
+  destinations?: string;
 }

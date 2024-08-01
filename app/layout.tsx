@@ -1,11 +1,20 @@
 import Head from 'next/head';
 import StoreProvider from '@/app/StoreProvider';
+import { Theme } from '@radix-ui/themes';
 import '@/app/ui/global.css';
+import ToastComponent from './ui/toast';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+});
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <StoreProvider>
-      <html lang="en">
+      <html lang="en" className={`${jakarta.variable} ${jakarta.variable}`}>
         <Head>
           <meta
             name="description"
@@ -29,7 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
           <meta name="twitter:image" content="/path/to/image.jpg" />
         </Head>
-        <body>{children}</body>
+        <body>
+          <Theme>
+            <main>{children}</main>
+            <ToastComponent />
+          </Theme>
+        </body>
       </html>
     </StoreProvider>
   );

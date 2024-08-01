@@ -2,25 +2,44 @@ import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { Folder } from '@/types/index';
 
+export async function GET() {
+  try {
+    const result = await sql<Folder[]>`
+      SELECT f.id, f.name, f.recent_image, COALESCE(array_agg(d.image) FILTER (WHERE d.image IS NOT NULL), '{}') AS images
+      FROM folders f
+      LEFT JOIN folder_destinations fd ON f.id = fd.folder_id
+      LEFT JOIN destinations d ON fd.destination_id = d.id
+      GROUP BY f.id
+      ORDER BY f.id DESC
+    `;
+
+    return NextResponse.json({ folders: result.rows }, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching folders:', error);
+    return NextResponse.json({ error }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    const { name }: { name: string } = await request.json();
-    const result = await sql<Folder>`INSERT INTO folders (name) VALUES (${name}) RETURNING id, name`;
+    const { name, description } = await request.json();
 
-    // Access the rows property
-    const folders = result.rows;
-    if (folders.length === 0) {
-      throw new Error('Folder creation failed');
+    // Check for duplicate folder names
+    const existingFolder = await sql<Folder[]>`
+      SELECT id FROM folders WHERE LOWER(name) = LOWER(${name})
+    `;
+    if (existingFolder.rows.length > 0) {
+      return NextResponse.json({ error: 'Folder name already exists.' }, { status: 400 });
     }
 
-    return NextResponse.json({ id: folders[0].id }, { status: 200 });
+    const result = await sql<Folder>`
+      INSERT INTO folders (name, description) VALUES (${name}, ${description}) 
+      RETURNING id, name, description, recent_image
+    `;
+    const newFolder = result.rows[0];
+    return NextResponse.json(newFolder, { status: 201 });
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error creating folder:', error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    } else {
-      console.error('Unknown error:', error);
-      return NextResponse.json({ error: 'Unknown error' }, { status: 500 });
-    }
+    console.error('Error creating folder:', error);
+    return NextResponse.json({ error }, { status: 500 });
   }
 }

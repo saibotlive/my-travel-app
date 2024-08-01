@@ -1,21 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import Link from 'next/link';
-import { useGetDestinationsQuery, useUpdateFolderDestinationsMutation } from '@/lib/features/apiSlice';
-import { Destination } from '@/types/index';
+import {
+  useGetDestinationsQuery,
+  useUpdateFolderDestinationsMutation,
+  useCreateFolderMutation,
+  useGetFoldersQuery,
+} from '@/lib/features/apiSlice';
+import { Destination, Folder } from '@/types/index';
+import FolderCreationModal from '@/app/ui/folder/folder-creation-modal';
+import FolderList from '@/app/ui/folder/folder-list';
+import DestinationList from '@/app/ui/destination/destination-list';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext } from '@dnd-kit/sortable';
+import { Heading } from '@radix-ui/themes';
+import { showToast } from '@/lib/features/toastSlice';
+import { useDispatch } from 'react-redux';
 
 interface Props {
   initialDestinations: Destination[];
+  initialFolders: Folder[];
 }
 
-const HomeContent = ({ initialDestinations }: Props) => {
+const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) => {
   const [items, setItems] = useState<Destination[]>(initialDestinations);
+  const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [updateFolderDestinations] = useUpdateFolderDestinationsMutation();
+  const [createFolder] = useCreateFolderMutation();
+  const { data: folderData, error: folderError, refetch: refetchFolder } = useGetFoldersQuery();
+  const dispatch = useDispatch();
 
   // Client-side fetch if no initial data
-  const { data: clientFetchedDestinations } = useGetDestinationsQuery(undefined, {
+  const { data: clientFetchedDestinations, error: destinationsError } = useGetDestinationsQuery(undefined, {
     skip: initialDestinations.length > 0,
   });
 
@@ -25,67 +41,75 @@ const HomeContent = ({ initialDestinations }: Props) => {
     }
   }, [clientFetchedDestinations]);
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    const newItems = Array.from(items);
-    const [removed] = newItems.splice(result.source.index, 1);
-    newItems.splice(result.destination.index, 0, removed);
-    setItems(newItems);
+  useEffect(() => {
+    if (folderData) {
+      setFolders(folderData);
+    }
+  }, [folderData]);
 
-    // Update folder destinations in the backend
-    updateFolderDestinations({
-      folderId: parseInt(result.destination.droppableId),
-      destinationIds: newItems.map((item) => item.id),
-    });
+  const handleFolderCreate = async (name: string, description: string) => {
+    try {
+      const newFolder = await createFolder({ name, description }).unwrap();
+      setFolders((prevFolders) => [...prevFolders, newFolder]);
+      dispatch(showToast({ title: 'Success', description: 'Folder created successfully.' }));
+      refetchFolder();
+    } catch (error) {
+      dispatch(showToast({ title: 'Error', description: 'Error creating folder.' }));
+    }
   };
 
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    if (over.id.startsWith('folder-')) {
+      const movedItem = items.find((item) => item.id.toString() === active.id);
+
+      const folderId = parseInt(over.id.replace('folder-', ''));
+      const folder = folders.find((folder) => folder.id === folderId);
+
+      if (folder && movedItem) {
+        const updatedFolders: Folder[] = folders.map((folder) =>
+          folder.id === folderId
+            ? {
+                ...folder,
+                recentImage: movedItem.image,
+              }
+            : folder
+        );
+        setFolders(updatedFolders);
+
+        try {
+          await updateFolderDestinations({ folderId, destinationIds: [movedItem.id] }).unwrap();
+          dispatch(showToast({ title: 'Success', description: 'Destination successfully added to folder.' }));
+          refetchFolder();
+        } catch (error) {
+          dispatch(showToast({ title: 'Error', description: 'Error adding destination to folder.' }));
+        }
+      }
+    }
+  };
+
+  if (destinationsError || folderError) {
+    return <div>Error loading data</div>;
+  }
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Saved Destinations</h1>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="destinations">
-          {(provided) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="grid grid-cols-3 gap-4"
-              aria-labelledby="saved-destinations"
-            >
-              <h2 id="saved-destinations" className="sr-only text-red-300">
-                Saved Destinations
-              </h2>
-              {items.map((destination, index) => (
-                <Draggable key={destination.id} draggableId={destination.id.toString()} index={index}>
-                  {(provided) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className="border p-4"
-                      role="listitem"
-                      aria-labelledby={`destination-title-${destination.id}`}
-                    >
-                      <img
-                        src={destination.image}
-                        alt={`Image of ${destination.name}`}
-                        className="w-full h-32 object-cover mb-2"
-                      />
-                      <h3 id={`destination-title-${destination.id}`} className="text-xl">
-                        {destination.name}
-                      </h3>
-                      <Link href={`/folder/${destination.folder_id}`} className="text-blue-500 hover:underline">
-                        View Folder
-                      </Link>
-                    </div>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
-    </div>
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={items}>
+        <div className="container mx-auto p-4">
+          <Heading as="h1" className="text-2xl font-bold mb-4">
+            My Trips
+          </Heading>
+          <div className="relative grid grid-cols-4 gap-5 ">
+            <FolderCreationModal onCreate={handleFolderCreate} />
+            <FolderList folders={folders} />
+          </div>
+          <DestinationList items={items} />
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 };
 
