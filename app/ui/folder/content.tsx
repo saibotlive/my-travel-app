@@ -1,41 +1,28 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { showToast } from '@/lib/features/toastSlice';
-import { useGetDestinationsForFolderQuery, useUpvoteDestinationMutation } from '@/lib/features/apiSlice';
+import { useUpvoteDestinationMutation } from '@/lib/features/apiSlice';
 import { Destination } from '@/types/index';
-import { Button, Heading, IconButton } from '@radix-ui/themes';
-import { ArrowUpIcon } from '@radix-ui/react-icons';
+import { Button, Heading, IconButton, Text } from '@radix-ui/themes';
+import { ArrowLeftIcon, ThickArrowUpIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface Props {
-  folderId: number;
-  initialFolderName: string;
+  folderName: string;
+  folderDescription: string;
   initialDestinations: Destination[];
 }
 
-const FolderContent = ({ folderId, initialFolderName, initialDestinations = [] }: Props) => {
+const FolderContent = ({ folderName, folderDescription, initialDestinations = [] }: Props) => {
   const [destinations, setDestinations] = useState<Destination[]>(
     Array.isArray(initialDestinations) ? initialDestinations : []
   );
-  const [folderName, setFolderName] = useState<string>(initialFolderName);
+
   const [upvoteDestination] = useUpvoteDestinationMutation();
   const dispatch = useDispatch();
-
-  // Client-side fetch if no initial data
-  const { data: clientFetched, refetch } = useGetDestinationsForFolderQuery(folderId, {
-    skip: initialDestinations.length > 0,
-  });
-
-  useEffect(() => {
-    if (clientFetched?.destinations) {
-      setDestinations(clientFetched?.destinations);
-    }
-    if (clientFetched?.folderName) {
-      setFolderName(clientFetched?.folderName);
-    }
-  }, [clientFetched]);
 
   const handleUpvote = async (destinationId: number, votes: number) => {
     try {
@@ -50,12 +37,28 @@ const FolderContent = ({ folderId, initialFolderName, initialDestinations = [] }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <Heading as="h1" className="text-2xl font-bold mb-4">
+    <div className="container mx-auto p-4 grid gap-4">
+      <Link href={'/'}>
+        <IconButton className="cursor-pointer bg-transparent mb-2">
+          <ArrowLeftIcon color="black" width={24} height={24} className="" />
+        </IconButton>
+      </Link>
+
+      <Heading as="h1" className="text-2xl font-bold">
         {folderName || 'Folder'}
       </Heading>
-      <div className="grid grid-cols-3 gap-4">
-        {destinations.map((destination) => (
+      {folderDescription && (
+        <Text as="p" className="">
+          {folderDescription}
+        </Text>
+      )}
+      {!destinations.length && (
+        <Heading as="h2" className="w-full text-center">
+          There aren't any destinations on this trip yet
+        </Heading>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {destinations.map((destination: Destination) => (
           <div key={destination.id} className="pb-4 relative overflow-hidden rounded-[11px]">
             <Image
               src={destination.image}
@@ -73,7 +76,7 @@ const FolderContent = ({ folderId, initialFolderName, initialDestinations = [] }
               onClick={() => handleUpvote(destination.id, destination.votes)}
               className="flex mt-4 items-center gap-2 p-2 border border-solid border-gray-500 rounded-lg cursor-pointer"
             >
-              <ArrowUpIcon />
+              <ThickArrowUpIcon className="text-black" />
               <span>{destination.votes}</span>
             </Button>
           </div>

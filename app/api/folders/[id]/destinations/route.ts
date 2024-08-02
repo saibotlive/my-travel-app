@@ -22,7 +22,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     const existingDestinations = result.rows as unknown as ExistingDestination[];
     const existingIds = existingDestinations.map((d) => d.destination_id);
     const newDestinationIds = destinationIds.filter((id: number) => !existingIds.includes(id));
-    console.log('xxexist', existingDestinations);
+
     if (newDestinationIds.length === 0) {
       return NextResponse.json({ message: 'Destination Already exists in the folder.' }, { status: 400 });
     }

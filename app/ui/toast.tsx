@@ -25,7 +25,7 @@ const ToastComponent = () => {
         onOpenChange={() => dispatch(hideToast())}
       >
         <Toast.Title className="font-bold">{title}</Toast.Title>
-        <Toast.Action className="w-full text-blue-500 flex justify-end" asChild altText="Close">
+        <Toast.Action className="text-blue-500 flex justify-end cursor-pointer" asChild altText="Close">
           <Cross1Icon />
         </Toast.Action>
         <Toast.Description className="text-sm">{description}</Toast.Description>

@@ -3,14 +3,16 @@ import { CSS } from '@dnd-kit/utilities';
 import { Destination } from '@/types/index';
 import Image from 'next/image';
 import { Heading } from '@radix-ui/themes';
+import clsx from 'clsx';
 
 const DraggableDestination = ({ destination }: { destination: Destination }) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: destination.id.toString(),
   });
 
   const style = {
     transform: CSS.Translate.toString(transform),
+    transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', // Apply transition when not dragging
   };
 
   return (
@@ -19,7 +21,7 @@ const DraggableDestination = ({ destination }: { destination: Destination }) => 
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-grab relative"
+      className="cursor-grab relative touch-none"
       role="listitem"
       aria-labelledby={`destination-title-${destination.id}`}
     >

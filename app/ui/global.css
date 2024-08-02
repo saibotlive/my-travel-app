@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 
-html {
+html, body {
   font-family: var(--font-jakarta);
+  @apply font-jakarta;
 }
 
 /* reset */
@@ -13,6 +14,10 @@ fieldset,
 a,
 input {
   all: unset;
+}
+
+h1, h2, h3, h4, h5, h6, p, a, span, div, button {
+  @apply font-jakarta !important;
 }
 
 

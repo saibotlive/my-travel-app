@@ -24,15 +24,29 @@ async function getData(endpoint: string) {
   }
 }
 
+// Generate metadata dynamically
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const folderId = params.id;
+  const resp = await getData(`/api/folders/${folderId}`);
+  return {
+    title: `${resp.folderName} - Holiwise`,
+    description: resp.folderDescription,
+    openGraph: {
+      title: resp.folderName,
+      description: resp.folderDescription,
+      images: [{ url: resp.folderImage, alt: resp.folderName }],
+    },
+  };
+}
+
 const FolderPage = async ({ params }: { params: { id: string } }) => {
   const folderId = params.id;
   const resp = await getData(`/api/folders/${folderId}`);
 
-  console.log('xparamsDest', resp.destinations);
   return (
     <FolderContent
-      folderId={parseInt(folderId)}
-      initialFolderName={resp.folderName}
+      folderName={resp.folderName}
+      folderDescription={resp.folderDescription}
       initialDestinations={resp.destinations}
     />
   );

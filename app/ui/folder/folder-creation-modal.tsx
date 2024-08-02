@@ -13,7 +13,6 @@ const FolderCreationModal = ({ onCreate }: { onCreate: (name: string, descriptio
 
   const handleCreateFolder = (event: SyntheticEvent) => {
     event.preventDefault();
-    console.log('xsubmit');
     onCreate(name, description);
     setName('');
     setDescription('');

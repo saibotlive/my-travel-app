@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   useGetDestinationsQuery,
   useUpdateFolderDestinationsMutation,
@@ -27,40 +28,24 @@ const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) =
   const [folders, setFolders] = useState<Folder[]>(initialFolders);
   const [updateFolderDestinations] = useUpdateFolderDestinationsMutation();
   const [createFolder] = useCreateFolderMutation();
-  const { data: folderData, error: folderError, refetch: refetchFolder } = useGetFoldersQuery();
+  // const { data: clientFetchedFolders, error: folderError, refetch: refetchFolder } = useGetFoldersQuery();
   const dispatch = useDispatch();
-
-  // Client-side fetch if no initial data
-  const { data: clientFetchedDestinations, error: destinationsError } = useGetDestinationsQuery(undefined, {
-    skip: initialDestinations.length > 0,
-  });
-
-  useEffect(() => {
-    if (clientFetchedDestinations) {
-      setItems(clientFetchedDestinations);
-    }
-  }, [clientFetchedDestinations]);
-
-  useEffect(() => {
-    if (folderData) {
-      setFolders(folderData);
-    }
-  }, [folderData]);
+  const router = useRouter();
 
   const handleFolderCreate = async (name: string, description: string) => {
     try {
       const newFolder = await createFolder({ name, description }).unwrap();
-      setFolders((prevFolders) => [...prevFolders, newFolder]);
+      setFolders((prevFolders) => [newFolder, ...prevFolders]);
       dispatch(showToast({ title: 'Success', description: 'Folder created successfully.' }));
-      refetchFolder();
-    } catch (error) {
-      dispatch(showToast({ title: 'Error', description: 'Error creating folder.' }));
+      router.refresh();
+    } catch (error: any) {
+      dispatch(showToast({ title: 'Error', description: error.data?.message }));
     }
   };
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
-
+    console.log('Drag End Event:', event);
     if (!over) return;
 
     if (over.id.startsWith('folder-')) {
@@ -70,30 +55,29 @@ const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) =
       const folder = folders.find((folder) => folder.id === folderId);
 
       if (folder && movedItem) {
-        const updatedFolders: Folder[] = folders.map((folder) =>
-          folder.id === folderId
-            ? {
-                ...folder,
-                recentImage: movedItem.image,
-              }
-            : folder
-        );
-        setFolders(updatedFolders);
-
         try {
           await updateFolderDestinations({ folderId, destinationIds: [movedItem.id] }).unwrap();
           dispatch(showToast({ title: 'Success', description: 'Destination successfully added to folder.' }));
-          refetchFolder();
-        } catch (error) {
-          dispatch(showToast({ title: 'Error', description: 'Error adding destination to folder.' }));
+          const updatedFolders: Folder[] = folders.map((folder) =>
+            folder.id === folderId
+              ? {
+                  ...folder,
+                  images: [...folder.images, movedItem.image],
+                }
+              : folder
+          );
+          setFolders(updatedFolders);
+          router.refresh();
+        } catch (error: any) {
+          dispatch(showToast({ title: 'Error', description: error.data.message }));
         }
       }
     }
   };
 
-  if (destinationsError || folderError) {
-    return <div>Error loading data</div>;
-  }
+  // if (destinationsError || folderError) {
+  //   return <div>Error loading data</div>;
+  // }
 
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -102,7 +86,7 @@ const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) =
           <Heading as="h1" className="text-2xl font-bold mb-4">
             My Trips
           </Heading>
-          <div className="relative grid grid-cols-4 gap-5 ">
+          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-5 ">
             <FolderCreationModal onCreate={handleFolderCreate} />
             <FolderList folders={folders} />
           </div>

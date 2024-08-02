@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       SELECT id FROM folders WHERE LOWER(name) = LOWER(${name})
     `;
     if (existingFolder.rows.length > 0) {
-      return NextResponse.json({ error: 'Folder name already exists.' }, { status: 400 });
+      return NextResponse.json({ message: 'Folder name already exists.' }, { status: 400 });
     }
 
     const result = await sql<Folder>`

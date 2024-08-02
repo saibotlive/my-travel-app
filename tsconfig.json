@@ -19,7 +19,6 @@
     "paths": {
       "@/app/*": ["app/*"],
       "@/lib/*": ["lib/*"],
-      "@/styles/*": ["styles/*"],
       "@/types/*": ["types/*"]
     },
     "plugins": [
@@ -34,7 +33,7 @@
     "**/*.tsx",
     "types.d.ts",
     ".next/types/**/*.ts"
-  ],
+, "jest.setup.js", "jest.config.js"  ],
   "exclude": ["node_modules"],
   "ts-node": {
     "compilerOptions": {

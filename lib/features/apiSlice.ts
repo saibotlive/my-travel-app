@@ -8,6 +8,7 @@ interface ResponseMessage {
 interface DestinationsForFolderResponse {
   destinations: Destination[];
   folderName: string;
+  folderDescription: string;
 }
 
 export const apiSlice = createApi({
