@@ -20,6 +20,7 @@ const config: Config = {
           500: '#0070F3',
           600: '#2F6FEB',
         },
+        'ring-color': 'rgb(162 223 255)',
       },
     },
     keyframes: {

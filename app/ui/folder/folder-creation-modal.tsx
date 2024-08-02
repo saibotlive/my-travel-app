@@ -25,7 +25,7 @@ const FolderCreationModal = ({ onCreate }: { onCreate: (name: string, descriptio
         onClick={() => setOpenModal(true)}
         color="gray"
         variant="soft"
-        className="w-full aspect-square h-full flex flex-col justify-center rounded-[11px]"
+        className="w-full aspect-square h-full flex flex-col justify-center rounded-[11px] cursor-pointer"
       >
         <PlusIcon fontSize={50} className="block w-16 h-16" />
         <Text as="p" className="text-base">
@@ -53,6 +53,7 @@ const FolderCreationModal = ({ onCreate }: { onCreate: (name: string, descriptio
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="E.g. Beach Trip"
+                required
                 className="rounded border p-2 text-[15px] text-violet-11 shadow-[0_0_0_1px_var(--violet-7)] h-[35px] focus:shadow-[0_0_0_2px_var(--violet-8)]"
               />
             </fieldset>
@@ -67,10 +68,15 @@ const FolderCreationModal = ({ onCreate }: { onCreate: (name: string, descriptio
               />
             </fieldset>
             <div className="flex flex-row-reverse gap-4">
-              <Button color="gray" variant="soft" type="submit" className="flex-1 rounded p-4">
+              <Button type="submit" className="flex-1 rounded p-4 bg-ring-color/50 bg-opacity-45 cursor-pointer">
                 Create
               </Button>
-              <Button color="gray" variant="outline" onClick={() => setOpenModal(false)} className="flex-1 rounded p-4">
+              <Button
+                color="gray"
+                variant="outline"
+                onClick={() => setOpenModal(false)}
+                className="flex-1 rounded p-4 cursor-pointer"
+              >
                 Cancel
               </Button>
             </div>
