@@ -6,15 +6,14 @@ interface Props {
   initialFolders: Folder[];
 }
 
+export const revalidate = 0;
+
 async function getData(endpoint: string) {
-  const baseUrl = process.env.BASE_URL || ''; // Replace with your deployment URL or use environment variable
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000'; // Replace with your deployment URL or use environment variable
 
   try {
     const res = await fetch(`${baseUrl}${endpoint}`, {
       cache: 'no-store',
-      next: {
-        revalidate: 0,
-      },
     });
 
     if (!res.ok) {
@@ -27,8 +26,6 @@ async function getData(endpoint: string) {
     return [];
   }
 }
-
-export const dynamic = 'force-dynamic'; // Enable dynamic data fetching
 
 const Home = async () => {
   const [destinationsResp, foldersResp] = await Promise.all([getData('/api/destinations'), getData('/api/folders')]);

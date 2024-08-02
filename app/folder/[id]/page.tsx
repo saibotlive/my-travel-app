@@ -5,7 +5,7 @@ interface Props {
   initialDestinations: Destination[];
 }
 
-export const dynamic = 'force-dynamic'; // Enable dynamic data fetching
+export const revalidate = 0;
 
 async function getData(endpoint: string) {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000'; // Replace with your deployment URL or use environment variable
