@@ -39,13 +39,12 @@ const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) =
       dispatch(showToast({ title: 'Success', description: 'Folder created successfully.' }));
       router.refresh();
     } catch (error: any) {
-      dispatch(showToast({ title: 'Error', description: error.data?.message }));
+      dispatch(showToast({ title: 'Error', description: error?.data?.message || 'Error creating folder' }));
     }
   };
 
   const handleDragEnd = async (event: any) => {
     const { active, over } = event;
-    console.log('Drag End Event:', event);
     if (!over) return;
 
     if (over.id.startsWith('folder-')) {
@@ -62,14 +61,14 @@ const HomeContent = ({ initialDestinations = [], initialFolders = [] }: Props) =
             folder.id === folderId
               ? {
                   ...folder,
-                  images: [...folder.images, movedItem.image],
+                  images: folder.images ? [...folder.images, movedItem.image] : [movedItem.image],
                 }
               : folder
           );
           setFolders(updatedFolders);
           router.refresh();
         } catch (error: any) {
-          dispatch(showToast({ title: 'Error', description: error.data.message }));
+          dispatch(showToast({ title: 'Error', description: error?.data?.message || 'Error creating folder' }));
         }
       }
     }
