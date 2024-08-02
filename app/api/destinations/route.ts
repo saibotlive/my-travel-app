@@ -2,6 +2,8 @@ import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { Destination } from '@/types/index';
 
+export const fetchCache = 'force-no-store';
+
 export async function GET() {
   try {
     const result = await sql<Destination[]>`SELECT * FROM destinations`;

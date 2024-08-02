@@ -1,6 +1,8 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
+export const fetchCache = 'force-no-store';
+
 interface FolderWithDestinations {
   folder_id: number;
   folder_name: string;

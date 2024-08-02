@@ -1,6 +1,8 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
+export const fetchCache = 'force-no-store';
+
 interface ExistingDestination {
   destination_id: number;
 }
