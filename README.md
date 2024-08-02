@@ -1,5 +1,7 @@
 # Holiwise Test App
 
+- [Visit](https://my-travel-app-sigma.vercel.app)
+
 ## Overview
 
 Holiwise is a web application designed to help users plan group travel. It allows users to save, vote, and manage favourite travel destinations, organise destinations into folders, and view details about each destination. This app uses Next.js for server-side rendering and client-side routing, Redux for state management, and Vercel Postgres for data storage.

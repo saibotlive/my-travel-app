@@ -1,12 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import { apiSlice } from '@/lib/features/apiSlice';
-import foldersReducer from '@/lib/features/folderSlice';
 import toastReducer from '@/lib/features/toastSlice';
 
 export const store = configureStore({
   reducer: {
-    folders: foldersReducer,
     toast: toastReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
