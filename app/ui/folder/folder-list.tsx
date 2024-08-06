@@ -11,7 +11,7 @@ const DroppableFolder = ({ folder }: { folder: Folder }) => {
   });
 
   return (
-    <Link href={`/folder/${folder.id}`}>
+    <Link href={`/folder/${folder.folder_key}`}>
       <div ref={setNodeRef} className="pb-4 relative cursor-pointer" aria-labelledby={`folder-title-${folder.id}`}>
         <div className="relative overflow-hidden h-0 pb-[56.25%] border-3 rounded-[11px]">
           {!folder.recent_image && (

@@ -3,6 +3,7 @@ export interface Destination {
   name: string;
   image: string;
   votes: number;
+  voted?: boolean;
 }
 
 export interface Folder {
@@ -11,6 +12,7 @@ export interface Folder {
   description: string;
   recent_image?: string;
   images: string[];
+  folder_key: string;
 }
 
 export interface FolderWithDestinations extends Destination {

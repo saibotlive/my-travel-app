@@ -7,7 +7,7 @@ export const fetchCache = 'force-no-store';
 export async function GET() {
   try {
     const result = await sql<Folder[]>`
-      SELECT f.id, f.name, f.recent_image, COALESCE(array_agg(d.image) FILTER (WHERE d.image IS NOT NULL), '{}') AS images
+      SELECT f.id, f.name, f.folder_key, f.recent_image, COALESCE(array_agg(d.image) FILTER (WHERE d.image IS NOT NULL), '{}') AS images
       FROM folders f
       LEFT JOIN folder_destinations fd ON f.id = fd.folder_id
       LEFT JOIN destinations d ON fd.destination_id = d.id
@@ -25,18 +25,19 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { name, description } = await request.json();
+    const folderKey = name.toLowerCase().replace(/ /g, '-');
 
     // Check for duplicate folder names
-    const existingFolder = await sql<Folder[]>`
-      SELECT id FROM folders WHERE LOWER(name) = LOWER(${name})
+    const existingFolder = await sql`
+      SELECT id FROM folders WHERE folder_key = ${folderKey}
     `;
     if (existingFolder.rows.length > 0) {
       return NextResponse.json({ message: 'Folder name already exists.' }, { status: 400 });
     }
 
-    const result = await sql<Folder>`
-      INSERT INTO folders (name, description) VALUES (${name}, ${description}) 
-      RETURNING id, name, description, recent_image
+    const result = await sql`
+      INSERT INTO folders (name, description, folder_key) VALUES (${name}, ${description}, ${folderKey}) 
+      RETURNING id, name, description, folder_key, recent_image
     `;
     const newFolder = result.rows[0];
     return NextResponse.json(newFolder, { status: 201 });

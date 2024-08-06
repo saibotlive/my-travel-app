@@ -1,36 +1,63 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { showToast } from '@/lib/features/toastSlice';
-import { useUpvoteDestinationMutation } from '@/lib/features/apiSlice';
 import { Destination } from '@/types/index';
 import { Button, Heading, IconButton, Text } from '@radix-ui/themes';
 import { ArrowLeftIcon, ThickArrowUpIcon } from '@radix-ui/react-icons';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useUpvoteDestinationMutation } from '@/lib/features/apiSlice';
+import clsx from 'clsx';
 
 interface Props {
+  folderKey: string;
   folderName: string;
   folderDescription: string;
   initialDestinations: Destination[];
 }
 
-const FolderContent = ({ folderName, folderDescription, initialDestinations = [] }: Props) => {
+const FolderContent = ({ folderKey, folderName, folderDescription, initialDestinations = [] }: Props) => {
   const [destinations, setDestinations] = useState<Destination[]>(
     Array.isArray(initialDestinations) ? initialDestinations : []
   );
-
   const [upvoteDestination] = useUpvoteDestinationMutation();
   const dispatch = useDispatch();
 
-  const handleUpvote = async (destinationId: number, votes: number) => {
-    try {
-      await upvoteDestination(destinationId).unwrap();
+  useEffect(() => {
+    const savedVotes = localStorage.getItem(`votes-${folderKey}`);
+    if (savedVotes) {
+      const parsedVotes = JSON.parse(savedVotes);
       setDestinations((prevDestinations) =>
-        prevDestinations.map((dest) => (dest.id === destinationId ? { ...dest, votes: dest.votes + 1 } : dest))
+        prevDestinations.map((dest) => ({
+          ...dest,
+          voted: parsedVotes.includes(dest.id),
+        }))
+      );
+    }
+  }, [folderKey]);
+
+  const handleUpvote = async (destinationId: number, votes: number) => {
+    const savedVotes = localStorage.getItem(`votes-${folderKey}`);
+    const parsedVotes = savedVotes ? JSON.parse(savedVotes) : [];
+
+    if (parsedVotes.includes(destinationId)) {
+      dispatch(showToast({ title: 'Error', description: 'You have already voted for this destination.' }));
+      return;
+    }
+
+    try {
+      await upvoteDestination({ folderKey, destinationId }).unwrap();
+      setDestinations((prevDestinations) =>
+        prevDestinations.map((dest) =>
+          dest.id === destinationId ? { ...dest, votes: dest.votes + 1, voted: true } : dest
+        )
       );
       dispatch(showToast({ title: 'Success', description: 'Upvoted successfully' }));
+
+      parsedVotes.push(destinationId);
+      localStorage.setItem(`votes-${folderKey}`, JSON.stringify(parsedVotes));
     } catch (error) {
       dispatch(showToast({ title: 'Error', description: 'Failed to upvote' }));
     }
@@ -74,9 +101,13 @@ const FolderContent = ({ folderName, folderDescription, initialDestinations = []
               color="gray"
               variant="soft"
               onClick={() => handleUpvote(destination.id, destination.votes)}
-              className="flex mt-4 items-center gap-2 p-2 border border-solid border-gray-500 rounded-lg cursor-pointer"
+              className={clsx(
+                'flex mt-4 items-center gap-2 p-2 border border-solid border-gray-500 rounded-lg cursor-pointer',
+                { 'cursor-default': destination.voted }
+              )}
+              disabled={destination.voted}
             >
-              <ThickArrowUpIcon className="text-black" />
+              <ThickArrowUpIcon className={clsx('text-black', { 'text-gray-400': destination.voted })} />
               <span>{destination.votes}</span>
             </Button>
           </div>

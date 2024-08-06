@@ -26,11 +26,11 @@ export const apiSlice = createApi({
     getDestinationsForFolder: builder.query<DestinationsForFolderResponse, number>({
       query: (folderId) => `folders/${folderId}`,
     }),
-    upvoteDestination: builder.mutation<void, number>({
-      query: (id) => ({
-        url: 'upvote',
+    upvoteDestination: builder.mutation<void, { folderKey: string; destinationId: number }>({
+      query: ({ folderKey, destinationId }) => ({
+        url: `folders/${folderKey}/upvote`,
         method: 'POST',
-        body: { id },
+        body: { destinationId },
       }),
     }),
     createFolder: builder.mutation<Folder, { name: string; description: string }>({

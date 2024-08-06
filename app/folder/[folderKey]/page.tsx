@@ -13,9 +13,6 @@ async function getData(endpoint: string) {
   try {
     const res = await fetch(`${baseUrl}${endpoint}`, {
       cache: 'no-store',
-      next: {
-        revalidate: 0,
-      },
     });
 
     if (!res.ok) {
@@ -30,9 +27,9 @@ async function getData(endpoint: string) {
 }
 
 // Generate metadata dynamically
-export async function generateMetadata({ params }: { params: { id: string } }) {
-  const folderId = params.id;
-  const resp = await getData(`/api/folders/${folderId}`);
+export async function generateMetadata({ params }: { params: { folderKey: string } }) {
+  const { folderKey } = params;
+  const resp = await getData(`/api/folders/${folderKey}`);
   return {
     title: `${resp.folderName} - Holiwise`,
     description: resp.folderDescription,
@@ -44,12 +41,13 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
   };
 }
 
-const FolderPage = async ({ params }: { params: { id: string } }) => {
-  const folderId = params.id;
-  const resp = await getData(`/api/folders/${folderId}`);
+const FolderPage = async ({ params }: { params: { folderKey: string } }) => {
+  const { folderKey } = params;
+  const resp = await getData(`/api/folders/${folderKey}`);
 
   return (
     <FolderContent
+      folderKey={resp.folderKey}
       folderName={resp.folderName}
       folderDescription={resp.folderDescription}
       initialDestinations={resp.destinations}
